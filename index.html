@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESAS Homes — Luxury Real Estate</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="sections.css">
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    html, body { width: 100%; }
+    body { overflow-x: hidden; }
+    #root { width: 100%; height: 100vh; }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .su-0 { animation: slideUp .5s 0.00s cubic-bezier(.22,1,.36,1) both; }
+    .su-1 { animation: slideUp .5s 0.07s cubic-bezier(.22,1,.36,1) both; }
+    .su-2 { animation: slideUp .5s 0.13s cubic-bezier(.22,1,.36,1) both; }
+    .su-3 { animation: slideUp .5s 0.19s cubic-bezier(.22,1,.36,1) both; }
+    .su-4 { animation: slideUp .5s 0.25s cubic-bezier(.22,1,.36,1) both; }
+    .su-5 { animation: slideUp .5s 0.31s cubic-bezier(.22,1,.36,1) both; }
+
+    button { cursor: pointer; font-family: 'DM Sans', sans-serif; }
+    a { text-decoration: none; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+/* ════════════════════════════════════════════════════
+   EDITABLE DATA — swap anything here
+════════════════════════════════════════════════════ */
+const VILLAS = [
+  {
+    video: 'https://player.vimeo.com/external/435674703.hd.mp4?s=6f414e04a991316b2e3fbc1936399bf884210d7a&profile_id=174&oauth2_token_id=57447761',
+    idx: '01', name: 'Villa Verde',
+    location: 'Bodrum · Turkey', price: 'From $485,000',
+    specs: [
+      { label: 'Bedrooms',  value: '4' },
+      { label: 'Bathrooms', value: '3' },
+      { label: 'Area',      value: '320 m²' },
+      { label: 'Pool',      value: 'Private' },
+    ],
+    features: ['Private Garden', 'Mountain Views', 'Smart Home System', 'Covered Parking'],
+    subtext: 'Hillside luxury wrapped in nature · Mountain panorama · Private gardens',
+  },
+  {
+    video: 'https://player.vimeo.com/external/435674703.hd.mp4?s=6f414e04a991316b2e3fbc1936399bf884210d7a&profile_id=174&oauth2_token_id=57447761',
+    idx: '02', name: 'Villa Aqua',
+    location: 'Kaş, Antalya · Turkey', price: 'From $620,000',
+    specs: [
+      { label: 'Bedrooms',  value: '5' },
+      { label: 'Bathrooms', value: '4' },
+      { label: 'Area',      value: '410 m²' },
+      { label: 'Pool',      value: 'Infinity' },
+    ],
+    features: ['Infinity Pool', 'Rooftop Terrace', 'Outdoor Fireplace', 'Sea View'],
+    subtext: 'Infinity pool with twilight views · Handcrafted stone elegance',
+  },
+  {
+    video: 'https://player.vimeo.com/external/435674703.hd.mp4?s=6f414e04a991316b2e3fbc1936399bf884210d7a&profile_id=174&oauth2_token_id=57447761',
+    idx: '03', name: 'Villa Noir',
+    location: 'Istanbul · Turkey', price: 'From $540,000',
+    specs: [
+      { label: 'Bedrooms',  value: '4' },
+      { label: 'Bathrooms', value: '3' },
+      { label: 'Area',      value: '280 m²' },
+      { label: 'Pool',      value: 'Private' },
+    ],
+    features: ['Floor-to-Ceiling Glass', 'Private Pool', 'Home Automation', 'Landscaped Garden'],
+    subtext: 'Modern timber architecture · Floor-to-ceiling glass living · Smart home',
+  },
+];
+
+/* ════════════════════════════════════════════════════
+   TWEAK DEFAULTS — persisted between reloads
+════════════════════════════════════════════════════ */
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "palette": [
+    "#D4AF37",
+    "#0D0D0D",
+    "#F0EBE3"
+  ],
+  "darkMode": true,
+  "carouselWidth": 80,
+  "overlayOpacity": 65,
+  "specsPosition": "Left",
+  "ctaStyle": "Filled",
+  "autoPlay": true,
+  "transitionSpeed": "Medium",
+  "voiceNarration": false,
+  "showSpecs": true,
+  "showTagline": true,
+  "fontScale": 100
+}/*EDITMODE-END*/;
+
+/* ════════════════════════════════════════════════════
+   PALETTE SWATCHES — [accent, bg, text]
+════════════════════════════════════════════════════ */
+const PALETTE_OPTIONS = [
+  ['#C9A96E', '#0A2647', '#F5F0E8'],   // Navy & Gold
+  ['#D4AF37', '#0D0D0D', '#F0EBE3'],   // Obsidian & Champagne
+  ['#A8956B', '#1A2B1A', '#EFE9DF'],   // Forest & Sand
+  ['#C07840', '#1C2333', '#F2ECE4'],   // Slate & Bronze
+];
+
+/* ════════════════════════════════════════════════════
+   CONSTANTS & HELPERS
+════════════════════════════════════════════════════ */
+const N       = VILLAS.length;
+const AUTO_MS = 8000;
+
+function hexToRgb(hex) {
+  if (!hex || !hex.startsWith('#')) return [0, 0, 0];
+  const h = hex.replace('#', '');
+  return [parseInt(h.slice(0,2),16)||0, parseInt(h.slice(2,4),16)||0, parseInt(h.slice(4,6),16)||0];
+}
+const c = (hex, a = 1) => {
+  const [r,g,b] = hexToRgb(hex);
+  return a < 1 ? `rgba(${r},${g},${b},${a})` : `rgb(${r},${g},${b})`;
+};
+const ms = s => s === 'Fast' ? 320 : s === 'Slow' ? 1100 : 680;
+
+function getRole(i, active) {
+  const d = ((i - active) + N) % N;
+  return d === 0 ? 'center' : d === 1 ? 'right' : 'left';
+}
+
+function videoStyle(role, cw) {
+  const peek = (100 - cw) / 2;
+  if (role === 'center') return { left:'50%', transform:'translateX(-50%)', width:`${cw}%`,    height:'100%', top:0,     opacity:1,    filter:'none',    zIndex:10 };
+  if (role === 'right')  return { left:`${100-peek}%`,   transform:'none', width:`${cw}%`, height:'82%',  top:'9%',  opacity:0.45, filter:'blur(5px)', zIndex:5  };
+  /* left */             return { left:`${peek-cw}%`,    transform:'none', width:`${cw}%`, height:'82%',  top:'9%',  opacity:0.45, filter:'blur(5px)', zIndex:5  };
+}
+
+/* ════════════════════════════════════════════════════
+   SEAMLESS VIDEO — dual-layer crossfade for an invisible,
+   cinematic infinite loop (no visible reset frame).
+   The incoming layer sits underneath at full opacity while
+   the outgoing layer fades out on top → true dissolve, no dip.
+════════════════════════════════════════════════════ */
+function SeamlessVideo({ src, wrapStyle }) {
+  const aRef = useRef(null);
+  const bRef = useRef(null);
+  const frontRef = useRef('a');
+  const lockRef = useRef(false);
+  const FADE = 0.8; // crossfade window (seconds before clip end)
+
+  useEffect(() => {
+    const a = aRef.current, b = bRef.current;
+    if (!a || !b) return;
+    a.muted = true; b.muted = true;   // force-mute (React's muted attr is unreliable)
+    a.volume = 0;    b.volume = 0;
+    a.style.opacity = '1'; a.style.zIndex = '2';
+    b.style.opacity = '0'; b.style.zIndex = '1';
+    try { a.currentTime = 0; } catch (e) {}
+    a.play().catch(() => {});
+    b.play().then(() => b.pause()).catch(() => {});
+
+    let raf;
+    const tick = () => {
+      const front = frontRef.current === 'a' ? a : b;
+      const back  = frontRef.current === 'a' ? b : a;
+      const dur = front.duration;
+      if (dur && isFinite(dur) && !lockRef.current && front.currentTime >= dur - FADE) {
+        lockRef.current = true;
+        try { back.currentTime = 0; } catch (e) {}
+        back.play().catch(() => {});
+        back.style.zIndex = '1';   // incoming slides underneath…
+        back.style.opacity = '1';  // …at full opacity (prevents mid-fade dip)
+        front.style.zIndex = '2';  // outgoing stays on top…
+        void front.offsetWidth;    // reflow so the opacity transition fires
+        front.style.opacity = '0'; // …and dissolves away
+        frontRef.current = frontRef.current === 'a' ? 'b' : 'a';
+        setTimeout(() => { lockRef.current = false; }, FADE * 1000 + 90);
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => { cancelAnimationFrame(raf); a.pause(); b.pause(); };
+  }, [src]);
+
+  const layer = {
+    position: 'absolute', inset: 0, width: '100%', height: '100%',
+    objectFit: 'cover',
+    transition: `opacity ${FADE}s ease`,
+    willChange: 'opacity',
+    backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
+    transform: 'translate3d(0,0,0)',
+  };
+  return (
+    <div style={wrapStyle}>
+      <video ref={aRef} src={src} autoPlay muted loop playsInline preload="auto" style={layer}/>
+      <video ref={bRef} src={src} muted loop playsInline preload="auto" style={{ ...layer, opacity: 0 }}/>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════
+   ICONS
+════════════════════════════════════════════════════ */
+const IconL = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+  </svg>
+);
+const IconR = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+  </svg>
+);
+
+/* ════════════════════════════════════════════════════
+   NAV ARROW BUTTON
+════════════════════════════════════════════════════ */
+function NavArrow({ onClick, accent, children }) {
+  const [h, sH] = useState(false);
+  return (
+    <button onClick={onClick} onMouseEnter={() => sH(true)} onMouseLeave={() => sH(false)}
+      style={{
+        width:50, height:50,
+        border: `1px solid ${h ? accent : c(accent, 0.35)}`,
+        background: h ? c(accent, 0.1) : 'transparent',
+        color: '#F5F0E8',
+        display:'flex', alignItems:'center', justifyContent:'center',
+        transition:'all 180ms',
+      }}
+    >{children}</button>
+  );
+}
+
+/* ════════════════════════════════════════════════════
+   SPECS — LEFT PANEL
+════════════════════════════════════════════════════ */
+function LeftSpecs({ villa, accent, textColor, ctaStl, fontScale }) {
+  return (
+    <div style={{
+      position:'absolute', left:44, top:90, bottom:78,
+      zIndex:20, maxWidth:310,
+      display:'flex', flexDirection:'column', justifyContent:'center',
+      overflow:'hidden', zoom:`${fontScale}%`,
+    }}>
+      <div className="su-0" style={{ fontSize:9, letterSpacing:'0.28em', color:c(accent,.55), textTransform:'uppercase', marginBottom:5 }}>
+        Property {villa.idx} / 0{N}
+      </div>
+      <div className="su-1" style={{ fontSize:9, letterSpacing:'0.2em', color:accent, textTransform:'uppercase', fontWeight:400, marginBottom:6 }}>
+        {villa.location}
+      </div>
+      <h1 className="su-1" style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:'clamp(30px,4vw,54px)', fontWeight:300, color:textColor, lineHeight:0.95, marginBottom:5, letterSpacing:'-0.01em' }}>
+        {villa.name}
+      </h1>
+      <div className="su-2" style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:22, fontWeight:400, color:accent, marginBottom:12 }}>
+        {villa.price}
+      </div>
+      <div className="su-3" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px 20px', marginBottom:12 }}>
+        {villa.specs.map(s => (
+          <div key={s.label}>
+            <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:22, fontWeight:300, color:textColor, lineHeight:1.1 }}>{s.value}</div>
+            <div style={{ fontSize:8, letterSpacing:'0.18em', color:c(textColor,.42), textTransform:'uppercase', marginTop:3 }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+      <div className="su-3" style={{ width:28, height:1, background:c(accent,.3), marginBottom:10 }}/>
+      <p className="su-4" style={{ fontSize:12, color:c(textColor,.58), fontWeight:300, lineHeight:1.6, marginBottom:10 }}>
+        {villa.subtext}
+      </p>
+      <div className="su-4" style={{ display:'flex', flexDirection:'column', gap:5, marginBottom:16 }}>
+        {villa.features.map(f => (
+          <div key={f} style={{ display:'flex', alignItems:'center', gap:9, fontSize:11, color:c(textColor,.68), fontWeight:300 }}>
+            <div style={{ width:4, height:4, borderRadius:'50%', background:accent, flexShrink:0 }}/>
+            {f}
+          </div>
+        ))}
+      </div>
+      <button className="su-5" onClick={() => { const b=document.getElementById('booking'); if(b) window.scrollTo({top:b.getBoundingClientRect().top+window.scrollY,behavior:'smooth'}); }} style={ctaStl}>Book a Private Viewing</button>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════
+   SPECS — BOTTOM PANEL
+════════════════════════════════════════════════════ */
+function BottomSpecs({ villa, accent, textColor, ctaStl, fontScale }) {
+  return (
+    <div style={{
+      position:'absolute', bottom:82, left:'50%', transform:'translateX(-50%)',
+      zIndex:20, width:'min(880px,88vw)', zoom:`${fontScale}%`,
+    }}>
+      <div style={{ height:1, background:c(accent,.22), marginBottom:18 }}/>
+      <div style={{ display:'flex', alignItems:'center' }}>
+        <div style={{ flex:'0 0 230px' }}>
+          <div style={{ fontSize:9, letterSpacing:'0.2em', color:accent, textTransform:'uppercase', marginBottom:5 }}>{villa.location}</div>
+          <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:38, fontWeight:300, color:textColor, lineHeight:0.95, letterSpacing:'-0.01em' }}>{villa.name}</h2>
+          <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:20, color:accent, marginTop:6 }}>{villa.price}</div>
+        </div>
+        <div style={{ width:1, height:68, background:c(accent,.2), margin:'0 26px' }}/>
+        <div style={{ display:'flex', gap:22, flex:1 }}>
+          {villa.specs.map(s => (
+            <div key={s.label}>
+              <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:24, fontWeight:300, color:textColor }}>{s.value}</div>
+              <div style={{ fontSize:8, letterSpacing:'0.16em', color:c(textColor,.42), textTransform:'uppercase', marginTop:3 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ width:1, height:68, background:c(accent,.2), margin:'0 26px' }}/>
+        <button onClick={() => { const b=document.getElementById('booking'); if(b) window.scrollTo({top:b.getBoundingClientRect().top+window.scrollY,behavior:'smooth'}); }} style={ctaStl}>Book a Private Viewing</button>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════
+   APP
+════════════════════════════════════════════════════ */
+function App() {
+  const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
+
+  /* ── Theme derivation ── */
+  const palette    = Array.isArray(tweaks.palette) ? tweaks.palette : PALETTE_OPTIONS[0];
+  const [accent, bgHex, textHex] = palette;
+  const isDark     = tweaks.darkMode !== false;
+  const bgColor    = isDark ? bgHex : '#F8F4ED';
+  const textColor  = isDark ? textHex : bgHex;
+  const ov         = (tweaks.overlayOpacity || 65) / 100;
+  const cw         = tweaks.carouselWidth  || 80;
+  const tMs        = ms(tweaks.transitionSpeed);
+
+  /* ── CTA button style ── */
+  const ctaBase = {
+    border:'none', padding:'12px 26px', fontSize:10,
+    letterSpacing:'0.2em', textTransform:'uppercase', fontWeight:500,
+    cursor:'pointer', fontFamily:"'DM Sans',sans-serif", transition:'all 200ms',
+  };
+  const ctaStl = tweaks.ctaStyle === 'Outline'
+    ? { ...ctaBase, background:'transparent', color:accent, border:`1px solid ${accent}` }
+    : tweaks.ctaStyle === 'Pill'
+    ? { ...ctaBase, background:accent, color:bgHex, borderRadius:999 }
+    : { ...ctaBase, background:accent, color:bgHex };
+
+  /* ── Carousel state ── */
+  const [active,     setActive]     = useState(0);
+  const [animating,  setAnimating]  = useState(false);
+  const [contentKey, setContentKey] = useState(0);
+  const [lang,       setLang]       = useState(() => localStorage.getItem('lang') || 'EN');
+  const [autoKey,    setAutoKey]    = useState(0);
+  const rafRef = useRef(null);
+  const progressRef = useRef(null);
+
+  /* callback ref so the RAF closure always sees latest active */
+  const doAdv = useRef(null);
+  doAdv.current = () => {
+    setActive(a => (a + 1) % N);
+    setContentKey(k => k + 1);
+  };
+
+  /* ── Auto-advance — zero-rerender RAF via direct DOM mutation ── */
+  useEffect(() => {
+    if (progressRef.current) progressRef.current.style.transform = 'scaleX(0)';
+    cancelAnimationFrame(rafRef.current);
+    if (!tweaks.autoPlay) return;
+
+    let cancelled = false;
+    const t0 = Date.now();
+
+    const tick = () => {
+      if (cancelled) return;
+      const p = Math.min((Date.now() - t0) / AUTO_MS, 1);
+      if (progressRef.current) progressRef.current.style.transform = `scaleX(${p})`;
+      if (p < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      } else {
+        doAdv.current();
+        setAutoKey(k => k + 1);
+      }
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => { cancelled = true; cancelAnimationFrame(rafRef.current); };
+  }, [tweaks.autoPlay, autoKey]);
+
+  /* ── Voice narration ── */
+  useEffect(() => {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    if (!tweaks.voiceNarration) return;
+    const v = VILLAS[active];
+    const utt = new SpeechSynthesisUtterance(
+      `${v.name}. Located in ${v.location}. ${v.subtext}. Starting from ${v.price}.`
+    );
+    utt.rate = 0.82; utt.pitch = 0.9;
+    window.speechSynthesis.speak(utt);
+  }, [active, tweaks.voiceNarration]);
+
+  /* ── Navigation ── */
+  const navigate = (dir) => {
+    if (animating) return;
+    setAnimating(true);
+    setActive(a => dir === 'next' ? (a+1)%N : (a+N-1)%N);
+    setTimeout(() => { setContentKey(k => k+1); setAnimating(false); }, 320);
+    setAutoKey(k => k+1);
+  };
+
+  const goTo = (i) => {
+    if (animating || i === active) return;
+    setAnimating(true);
+    setActive(i);
+    setTimeout(() => { setContentKey(k => k+1); setAnimating(false); }, 320);
+    setAutoKey(k => k+1);
+  };
+
+  const villa = VILLAS[active];
+
+  /* ── Dynamic video transition string ── */
+  const VT = `left ${tMs}ms cubic-bezier(0.4,0,0.2,1), transform ${tMs}ms cubic-bezier(0.4,0,0.2,1), opacity ${tMs}ms cubic-bezier(0.4,0,0.2,1), filter ${tMs}ms cubic-bezier(0.4,0,0.2,1)`;
+
+  /* ── Gradient overlays ── */
+  const gradLeft   = `linear-gradient(to right, ${c(bgColor,Math.min(ov*1.45,1))} 0%, ${c(bgColor,ov)} 28%, ${c(bgColor,ov*0.52)} 52%, ${c(bgColor,0.06)} 75%, transparent 100%)`;
+  const gradBottom = `linear-gradient(to top, ${c(bgColor,0.72)} 0%, transparent 100%)`;
+
+  return (
+    <div style={{ position:'relative', width:'100vw', height:'100vh', overflow:'hidden', background:bgColor, fontFamily:"'DM Sans',sans-serif" }}>
+
+      {/* ── VIDEOS ─────────────────────────────────────────── */}
+      <div style={{ position:'absolute', inset:0, zIndex:1, overflow:'hidden' }}>
+        {VILLAS.map((v, i) => {
+          const rs = videoStyle(getRole(i, active), cw);
+          return (
+            <SeamlessVideo key={v.video} src={v.video}
+              wrapStyle={{ position:'absolute', ...rs, overflow:'hidden', transition:VT, willChange:'transform,filter,opacity,left' }}
+            />
+          );
+        })}
+      </div>
+
+      {/* ── GRADIENT OVERLAYS ──────────────────────────────── */}
+      <div style={{ position:'absolute', inset:0, zIndex:2, pointerEvents:'none', background:gradLeft }}/>
+      <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'30%', zIndex:2, pointerEvents:'none', background:gradBottom }}/>
+
+      {/* ── PROGRESS BAR — GPU-accelerated scaleX, zero re-renders ── */}
+      <div style={{ position:'absolute', top:0, left:0, right:0, height:2, background:c(accent,.14), zIndex:30 }}>
+        {tweaks.autoPlay && (
+          <div ref={progressRef} style={{
+            height:'100%',
+            background:accent,
+            transformOrigin:'left center',
+            transform:'scaleX(0)',
+            willChange:'transform',
+            backfaceVisibility:'hidden',
+            WebkitBackfaceVisibility:'hidden',
+          }}/>
+        )}
+      </div>
+
+      {/* ── NAV BAR — highest z-index, always on top ────────── */}
+      <nav style={{
+        position:'absolute', top:0, left:0, right:0,
+        zIndex:200,
+        display:'flex', alignItems:'center', justifyContent:'space-between',
+        padding:'20px 44px',
+      }}>
+        {/* Logo */}
+        <div style={{ display:'flex', alignItems:'center', gap:12, flexShrink:0 }}>
+          <img src="uploads/Gemini_Generated_Image_mnkvyamnkvyamnkv.png" alt="ESAS Homes"
+            style={{ width:46, height:46, borderRadius:'50%', objectFit:'cover' }}/>
+          <div>
+            <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:17, fontWeight:400, color:textColor, letterSpacing:'0.1em' }}>ESAS HOMES</div>
+            <div style={{ fontSize:8, fontWeight:300, color:c(textColor,.42), letterSpacing:'0.2em', textTransform:'uppercase', marginTop:3 }}>Istanbul · Turkey</div>
+          </div>
+        </div>
+
+        {/* Right: tagline + phone + CTA (top) · langs (below) */}
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:11, flexShrink:0 }}>
+          {/* Tagline + Phone (prominent) + CTA — one line, on top */}
+          <div style={{ display:'flex', alignItems:'center', gap:14 }}>
+            {tweaks.showTagline && (
+              <div style={{ border:`1px solid ${c(accent,.35)}`, padding:'7px 18px', fontSize:9, letterSpacing:'0.22em', color:accent, fontWeight:300, textTransform:'uppercase', whiteSpace:'nowrap' }}>
+                Upgrade Your Lifestyle
+              </div>
+            )}
+            <a href="tel:+905533333295" style={{
+              display:'flex', alignItems:'center', gap:8,
+              border:`1px solid ${c(accent,.5)}`, borderRadius:2,
+              padding:'8px 15px', background:c(accent,.08),
+              color:accent, fontSize:13, fontWeight:600, letterSpacing:'0.02em',
+              whiteSpace:'nowrap', transition:'background 200ms, box-shadow 200ms, transform 200ms',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = c(accent,.16); e.currentTarget.style.boxShadow = `0 4px 16px ${c(accent,.22)}`; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = c(accent,.08); e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none'; }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill={accent} style={{ flexShrink:0 }}>
+                <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+              </svg>
+              (+90) 553 333 32 95
+            </a>
+            <button
+              onClick={() => { const b=document.getElementById('booking'); if(b) window.scrollTo({top:b.getBoundingClientRect().top+window.scrollY,behavior:'smooth'}); }}
+              style={{ border:`1px solid ${accent}`, padding:'10px 22px', background:accent, color:bgHex, fontSize:9.5, letterSpacing:'0.16em', textTransform:'uppercase', fontWeight:600, whiteSpace:'nowrap', borderRadius:2, boxShadow:`0 4px 18px ${c(accent,.28)}`, transformOrigin:'center', transition:'transform 240ms cubic-bezier(.22,1,.36,1), box-shadow 240ms ease, filter 240ms ease' }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.05)'; e.currentTarget.style.boxShadow = `0 7px 28px ${c(accent,.5)}`; e.currentTarget.style.filter = 'brightness(1.06)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = `0 4px 18px ${c(accent,.28)}`; e.currentTarget.style.filter = 'none'; }}
+            >Book a Private Viewing</button>
+          </div>
+          {/* Language switcher — placed below */}
+          <div style={{ display:'flex', gap:10, alignItems:'center' }}>
+            {['EN','AR','RU','FA','ZH'].map(l => (
+              <button key={l} onClick={() => {
+                setLang(l);
+                localStorage.setItem('lang', l);
+                window.dispatchEvent(new CustomEvent('esasLangChange', { detail: l }));
+              }} style={{
+                background:'none', border:'none', padding:'2px 1px',
+                fontSize:10, letterSpacing:'0.14em',
+                color: l === lang ? accent : c(textColor,.4),
+                fontWeight: l === lang ? 600 : 300,
+                borderBottom: l === lang ? `1px solid ${accent}` : '1px solid transparent',
+                transition:'color 180ms, border-color 180ms',
+              }}
+              onMouseEnter={e => { if (l !== lang) e.currentTarget.style.color = c(textColor,.8); }}
+              onMouseLeave={e => { if (l !== lang) e.currentTarget.style.color = c(textColor,.4); }}
+              >{l}</button>
+            ))}
+          </div>
+        </div>
+      </nav>
+
+      {/* ── SPECS PANEL ────────────────────────────────────── */}
+      {tweaks.showSpecs && (
+        tweaks.specsPosition === 'Bottom'
+          ? <BottomSpecs key={contentKey} villa={villa} accent={accent} textColor={textColor} bgHex={bgHex} ctaStl={ctaStl} fontScale={tweaks.fontScale}/>
+          : <LeftSpecs   key={contentKey} villa={villa} accent={accent} textColor={textColor} bgHex={bgHex} ctaStl={ctaStl} fontScale={tweaks.fontScale}/>
+      )}
+
+      {/* ── BOTTOM-RIGHT: dots + arrows ─────────────────────── */}
+      <div style={{ position:'absolute', bottom:36, right:44, zIndex:20, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:14 }}>
+        <div style={{ display:'flex', gap:7, alignItems:'center' }}>
+          {VILLAS.map((_, i) => (
+            <button key={i} onClick={() => goTo(i)} style={{
+              width: i === active ? 26 : 6, height:6, borderRadius:3,
+              background: i === active ? accent : c(accent,.28),
+              border:'none', padding:0,
+              transition:'all 400ms cubic-bezier(0.4,0,0.2,1)',
+            }}/>
+          ))}
+        </div>
+        <div style={{ display:'flex', gap:10 }}>
+          <NavArrow onClick={() => navigate('prev')} accent={accent}><IconL/></NavArrow>
+          <NavArrow onClick={() => navigate('next')} accent={accent}><IconR/></NavArrow>
+        </div>
+      </div>
+
+      {/* ── SLIDE COUNTER ───────────────────────────────────── */}
+      <div style={{ position:'absolute', bottom:42, left:'50%', transform:'translateX(-50%)', zIndex:20, fontFamily:"'Cormorant Garamond',serif", fontSize:12, color:c(textColor,.26), letterSpacing:'0.14em', userSelect:'none' }}>
+        {villa.idx} &mdash; 0{N}
+      </div>
+
+      {/* ── TWEAKS PANEL ────────────────────────────────────── */}
+      <TweaksPanel>
+        <TweakSection label="Colour"/>
+        <TweakColor  label="Theme"      value={tweaks.palette}      options={PALETTE_OPTIONS}                          onChange={v => setTweak('palette', v)}/>
+        <TweakToggle label="Dark Mode"  value={tweaks.darkMode}                                                        onChange={v => setTweak('darkMode', v)}/>
+
+        <TweakSection label="Layout"/>
+        <TweakSlider label="Video Width %"   value={tweaks.carouselWidth}  min={60} max={100} step={5}                onChange={v => setTweak('carouselWidth', v)}/>
+        <TweakSlider label="Overlay Depth"   value={tweaks.overlayOpacity} min={20} max={90}  step={5}                onChange={v => setTweak('overlayOpacity', v)}/>
+        <TweakRadio  label="Specs Position"  value={tweaks.specsPosition}  options={['Left','Bottom']}                onChange={v => setTweak('specsPosition', v)}/>
+        <TweakRadio  label="Button Style"    value={tweaks.ctaStyle}       options={['Filled','Outline','Pill']}      onChange={v => setTweak('ctaStyle', v)}/>
+
+        <TweakSection label="Playback"/>
+        <TweakToggle label="Auto-advance"    value={tweaks.autoPlay}                                                   onChange={v => setTweak('autoPlay', v)}/>
+        <TweakRadio  label="Speed"           value={tweaks.transitionSpeed} options={['Fast','Medium','Slow']}        onChange={v => setTweak('transitionSpeed', v)}/>
+        <TweakToggle label="Voice Narration" value={tweaks.voiceNarration}                                             onChange={v => setTweak('voiceNarration', v)}/>
+
+        <TweakSection label="Show / Hide"/>
+        <TweakToggle label="Specs Panel"     value={tweaks.showSpecs}                                                  onChange={v => setTweak('showSpecs', v)}/>
+        <TweakToggle label="Tagline Pill"    value={tweaks.showTagline}                                                onChange={v => setTweak('showTagline', v)}/>
+
+        <TweakSection label="Typography"/>
+        <TweakSlider label="Font Scale %"    value={tweaks.fontScale}      min={75} max={130} step={5}                onChange={v => setTweak('fontScale', v)}/>
+      </TweaksPanel>
+
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+
+<!-- TOAST -->
+<div id="esas-toast"><span class="tc">✓</span><span class="tm"></span></div>
+
+<!-- ABOUT SECTION -->
+<section id="about" class="esas-section esas-dk">
+  <div class="esas-inner">
+    <div class="esas-about-img esas-r">
+      <div class="esas-about-img-media" style="background-image:url('images/about-foundation.jpg')"></div>
+      <div class="esas-about-img-overlay"></div>
+    </div>
+    <div class="esas-about-text">
+      <div class="esas-eyebrow esas-r" data-t="aboutEyebrow">About EsasHomes</div>
+      <h2 class="esas-r" data-d="1" data-th="aboutTitle">The Foundation of<br>Real Estate in Türkiye</h2>
+      <p class="esas-r" data-d="2" data-t="aboutText">EsasHomes has guided 420+ global partners through Istanbul's finest properties. From the shores of Kartal to the heights of Sarıyer, we are the foundation of real estate in Türkiye.</p>
+      <div class="esas-stats esas-r" data-d="3">
+        <div class="esas-stat">
+          <span class="sn" data-cnt="300+">0</span>
+          <span class="sl" data-t="s1l">Projects</span>
+        </div>
+        <div class="esas-stat">
+          <span class="sn" data-cnt="420+">0</span>
+          <span class="sl" data-t="s2l">Partners</span>
+        </div>
+        <div class="esas-stat">
+          <span class="sn">5</span>
+          <span class="sl" data-t="s3l">Languages</span>
+        </div>
+        <div class="esas-stat">
+          <span class="sn">✓</span>
+          <span class="sl" data-t="s4l">Citizenship Support</span>
+        </div>
+      </div>
+      <button class="esas-btn-outline esas-r" data-d="4" data-t="meetTeam">Meet Our Team</button>
+    </div>
+  </div>
+</section>
+
+<!-- PARTNERS -->
+<section id="partners" class="esas-section esas-dkr">
+  <div class="esas-hd esas-r">
+    <div class="esas-eyebrow">Our Network</div>
+    <h2 data-t="partnersTitle">Trusted Developer Partners</h2>
+    <div class="esas-rule"></div>
+  </div>
+  <div class="esas-marquee-wrap">
+    <div class="esas-marquee-track">
+      <div class="esas-partner-card">Artas İnşaat</div>
+      <div class="esas-partner-card">Altınboş</div>
+      <div class="esas-partner-card">Kelesoglu</div>
+      <div class="esas-partner-card">Toplu Konut (TOKİ)</div>
+      <div class="esas-partner-card">Ant Yapı</div>
+      <div class="esas-partner-card">Anadolu Grubu</div>
+      <div class="esas-partner-card">ANEF</div>
+      <div class="esas-partner-card">Akzirve</div>
+      <div class="esas-partner-card">Aşçıoğlu</div>
+      <div class="esas-partner-card">Emlak Konut</div>
+      <div class="esas-partner-card">Ahmet Kul Grubu</div>
+      <div class="esas-partner-card">Agaoglu</div>
+      <div class="esas-partner-card">Artas İnşaat</div>
+      <div class="esas-partner-card">Altınboş</div>
+      <div class="esas-partner-card">Kelesoglu</div>
+      <div class="esas-partner-card">Toplu Konut (TOKİ)</div>
+      <div class="esas-partner-card">Ant Yapı</div>
+      <div class="esas-partner-card">Anadolu Grubu</div>
+      <div class="esas-partner-card">ANEF</div>
+      <div class="esas-partner-card">Akzirve</div>
+      <div class="esas-partner-card">Aşçıoğlu</div>
+      <div class="esas-partner-card">Emlak Konut</div>
+      <div class="esas-partner-card">Ahmet Kul Grubu</div>
+      <div class="esas-partner-card">Agaoglu</div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURED PROPERTIES -->
+<section id="properties" class="esas-section esas-dk">
+  <div class="esas-hd esas-r">
+    <div class="esas-eyebrow">Portfolio</div>
+    <h2 data-t="propertiesTitle">Featured Properties</h2>
+    <div class="esas-rule"></div>
+  </div>
+  <div class="esas-props-grid">
+    <div class="esas-prop-card esas-r">
+      <div class="esas-prop-thumb" style="background-image:url('images/yaka-park-kartal.png')">
+        <div class="esas-prop-thumb-label">Yaka Park Kartal</div>
+        <span class="esas-pill ready" data-t="readyLbl">Ready</span>
+      </div>
+      <div class="esas-prop-body">
+        <div class="esas-prop-loc">Kartal, Istanbul</div>
+        <div class="esas-prop-name">Yaka Park Kartal</div>
+        <div class="esas-prop-price">From $185,000</div>
+        <div class="esas-prop-specs">
+          <div class="esas-spec-item"><i class="fas fa-bed" style="color:var(--eg);font-size:10px"></i>2 Bed</div>
+          <div class="esas-spec-item"><i class="fas fa-bath" style="color:var(--eg);font-size:10px"></i>2 Bath</div>
+          <div class="esas-spec-item"><i class="fas fa-expand" style="color:var(--eg);font-size:10px"></i>95 m²</div>
+        </div>
+        <button class="esas-prop-cta" data-t="viewProperty">View Property</button>
+      </div>
+    </div>
+    <div class="esas-prop-card esas-r" data-d="1">
+      <div class="esas-prop-thumb" style="background-image:url('images/referans-loca-kartal.png')">
+        <div class="esas-prop-thumb-label">Referans Loca Kartal</div>
+        <span class="esas-pill ready" data-t="readyLbl">Ready</span>
+      </div>
+      <div class="esas-prop-body">
+        <div class="esas-prop-loc">Kartal, Istanbul</div>
+        <div class="esas-prop-name">Referans Loca Kartal</div>
+        <div class="esas-prop-price">From $220,000</div>
+        <div class="esas-prop-specs">
+          <div class="esas-spec-item"><i class="fas fa-bed" style="color:var(--eg);font-size:10px"></i>3 Bed</div>
+          <div class="esas-spec-item"><i class="fas fa-bath" style="color:var(--eg);font-size:10px"></i>2 Bath</div>
+          <div class="esas-spec-item"><i class="fas fa-expand" style="color:var(--eg);font-size:10px"></i>130 m²</div>
+        </div>
+        <button class="esas-prop-cta" data-t="viewProperty">View Property</button>
+      </div>
+    </div>
+    <div class="esas-prop-card esas-r" data-d="2">
+      <div class="esas-prop-thumb" style="background-image:url('images/pega-kartal.png')">
+        <div class="esas-prop-thumb-label">Pega Kartal</div>
+        <span class="esas-pill construction" data-t="constructLbl">Under Construction</span>
+      </div>
+      <div class="esas-prop-body">
+        <div class="esas-prop-loc">Kartal, Istanbul</div>
+        <div class="esas-prop-name">Pega Kartal</div>
+        <div class="esas-prop-price">From $195,000</div>
+        <div class="esas-prop-specs">
+          <div class="esas-spec-item"><i class="fas fa-bed" style="color:var(--eg);font-size:10px"></i>2 Bed</div>
+          <div class="esas-spec-item"><i class="fas fa-bath" style="color:var(--eg);font-size:10px"></i>1 Bath</div>
+          <div class="esas-spec-item"><i class="fas fa-expand" style="color:var(--eg);font-size:10px"></i>88 m²</div>
+        </div>
+        <button class="esas-prop-cta" data-t="viewProperty">View Property</button>
+      </div>
+    </div>
+    <div class="esas-prop-card esas-r">
+      <div class="esas-prop-thumb" style="background-image:url('images/nouvel-maltepe.png')">
+        <div class="esas-prop-thumb-label">Nouvel Maltepe</div>
+        <span class="esas-pill construction" data-t="constructLbl">Under Construction</span>
+      </div>
+      <div class="esas-prop-body">
+        <div class="esas-prop-loc">Maltepe, Istanbul</div>
+        <div class="esas-prop-name">Nouvel Maltepe</div>
+        <div class="esas-prop-price">From $310,000</div>
+        <div class="esas-prop-specs">
+          <div class="esas-spec-item"><i class="fas fa-bed" style="color:var(--eg);font-size:10px"></i>3 Bed</div>
+          <div class="esas-spec-item"><i class="fas fa-bath" style="color:var(--eg);font-size:10px"></i>2 Bath</div>
+          <div class="esas-spec-item"><i class="fas fa-expand" style="color:var(--eg);font-size:10px"></i>155 m²</div>
+        </div>
+        <button class="esas-prop-cta" data-t="viewProperty">View Property</button>
+      </div>
+    </div>
+    <div class="esas-prop-card esas-r" data-d="1">
+      <div class="esas-prop-thumb" style="background-image:url('images/esa-415-kordon.png')">
+        <div class="esas-prop-thumb-label">ESA 415 Kordon Istanbul</div>
+        <span class="esas-pill ready" data-t="readyLbl">Ready</span>
+      </div>
+      <div class="esas-prop-body">
+        <div class="esas-prop-loc">Kartal, Istanbul</div>
+        <div class="esas-prop-name">ESA 415 Kordon Istanbul</div>
+        <div class="esas-prop-price">From $450,000</div>
+        <div class="esas-prop-specs">
+          <div class="esas-spec-item"><i class="fas fa-bed" style="color:var(--eg);font-size:10px"></i>4 Bed</div>
+          <div class="esas-spec-item"><i class="fas fa-bath" style="color:var(--eg);font-size:10px"></i>3 Bath</div>
+          <div class="esas-spec-item"><i class="fas fa-expand" style="color:var(--eg);font-size:10px"></i>220 m²</div>
+        </div>
+        <button class="esas-prop-cta" data-t="viewProperty">View Property</button>
+      </div>
+    </div>
+    <div class="esas-prop-card esas-r" data-d="2">
+      <div class="esas-prop-thumb" style="background-image:url('images/cuento-elite.png')">
+        <div class="esas-prop-thumb-label">Cuento Elite</div>
+        <span class="esas-pill construction" data-t="constructLbl">Under Construction</span>
+      </div>
+      <div class="esas-prop-body">
+        <div class="esas-prop-loc">Ataşehir, Istanbul</div>
+        <div class="esas-prop-name">Cuento Elite</div>
+        <div class="esas-prop-price">From $290,000</div>
+        <div class="esas-prop-specs">
+          <div class="esas-spec-item"><i class="fas fa-bed" style="color:var(--eg);font-size:10px"></i>3 Bed</div>
+          <div class="esas-spec-item"><i class="fas fa-bath" style="color:var(--eg);font-size:10px"></i>2 Bath</div>
+          <div class="esas-spec-item"><i class="fas fa-expand" style="color:var(--eg);font-size:10px"></i>145 m²</div>
+        </div>
+        <button class="esas-prop-cta" data-t="viewProperty">View Property</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY CHOOSE US -->
+<section id="why" class="esas-section esas-dkr">
+  <div class="esas-hd esas-r">
+    <div class="esas-eyebrow">Our Promise</div>
+    <h2 data-t="whyTitle">Why Choose EsasHomes</h2>
+    <div class="esas-rule"></div>
+  </div>
+  <div class="esas-why-grid">
+    <div class="esas-why-card esas-r">
+      <div class="esas-why-icon"><i class="fas fa-landmark fa-lg"></i></div>
+      <div class="esas-why-title" data-t="why1h">Government-Backed Guarantee</div>
+      <div class="esas-why-desc" data-t="why1d">Properties verified by Turkish authorities with full legal protection and title deed security.</div>
+    </div>
+    <div class="esas-why-card esas-r" data-d="1">
+      <div class="esas-why-icon"><i class="fas fa-bolt fa-lg"></i></div>
+      <div class="esas-why-title" data-t="why2h">Fast Title Deed — 1 Day</div>
+      <div class="esas-why-desc" data-t="why2d">Experience Turkey's fastest title transfer process, completed in as little as 24 hours.</div>
+    </div>
+    <div class="esas-why-card esas-r" data-d="2">
+      <div class="esas-why-icon"><i class="fas fa-globe fa-lg"></i></div>
+      <div class="esas-why-title" data-t="why3h">5 Languages Support</div>
+      <div class="esas-why-desc" data-t="why3d">Our multilingual team serves you fluently in Arabic, English, Russian, Persian, and Chinese.</div>
+    </div>
+    <div class="esas-why-card esas-r" data-d="3">
+      <div class="esas-why-icon"><i class="fas fa-handshake fa-lg"></i></div>
+      <div class="esas-why-title" data-t="why4h">Post-Sale Services</div>
+      <div class="esas-why-desc" data-t="why4d">We remain your partner long after the sale — property management, rentals, and residency support.</div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials" class="esas-section esas-dk">
+  <div class="esas-hd esas-r">
+    <div class="esas-eyebrow">Testimonials</div>
+    <h2 data-t="testiTitle">Client Stories</h2>
+    <div class="esas-rule"></div>
+  </div>
+  <div class="esas-testi-wrap">
+    <div class="esas-testi-track" id="testi-track">
+      <div class="esas-testi-card">
+        <div class="esas-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+        <p class="esas-testi-quote">"Working with EsasHomes was the best investment decision of my life. Professional, transparent, and truly dedicated to finding the perfect property."</p>
+        <div class="esas-testi-author">
+          <div class="esas-avatar">A</div>
+          <div><div class="esas-author-name">Ali Younis</div><div class="esas-author-role">Investor · Kuwait</div></div>
+        </div>
+      </div>
+      <div class="esas-testi-card">
+        <div class="esas-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+        <p class="esas-testi-quote">"From the first consultation to receiving my title deed, the team guided me every step of the way with full transparency and care."</p>
+        <div class="esas-testi-author">
+          <div class="esas-avatar">H</div>
+          <div><div class="esas-author-name">Hamoud Al-Shabami</div><div class="esas-author-role">Investor · Saudi Arabia</div></div>
+        </div>
+      </div>
+      <div class="esas-testi-card">
+        <div class="esas-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+        <p class="esas-testi-quote">"I found my perfect Istanbul apartment within two weeks. Exceptional multilingual service — they made the entire process feel effortless."</p>
+        <div class="esas-testi-author">
+          <div class="esas-avatar">M</div>
+          <div><div class="esas-author-name">Mustafa Abed</div><div class="esas-author-role">Entrepreneur · UAE</div></div>
+        </div>
+      </div>
+      <div class="esas-testi-card">
+        <div class="esas-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+        <p class="esas-testi-quote">"EsasHomes made the Turkish citizenship process smooth and completely stress-free. I now hold my Turkish passport — highly recommend."</p>
+        <div class="esas-testi-author">
+          <div class="esas-avatar">S</div>
+          <div><div class="esas-author-name">Saeed Abu Al-Hassan</div><div class="esas-author-role">Investor · Qatar</div></div>
+        </div>
+      </div>
+      <div class="esas-testi-card">
+        <div class="esas-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+        <p class="esas-testi-quote">"Five stars without hesitation. The after-sales support alone is worth choosing EsasHomes — they continue to manage my property with excellence."</p>
+        <div class="esas-testi-author">
+          <div class="esas-avatar">F</div>
+          <div><div class="esas-author-name">Faisal Ismail Al-Hamoud</div><div class="esas-author-role">Investor · Saudi Arabia</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="esas-carousel-nav">
+    <button class="esas-carousel-btn" id="testi-prev"><i class="fas fa-arrow-left"></i></button>
+    <button class="esas-carousel-btn" id="testi-next"><i class="fas fa-arrow-right"></i></button>
+  </div>
+</section>
+
+<!-- YOUTUBE -->
+<section id="videos" class="esas-section esas-dkr">
+  <div class="esas-hd esas-r">
+    <div class="esas-eyebrow">Watch</div>
+    <h2 data-t="ytTitle">Explore Our Properties</h2>
+    <div class="esas-rule"></div>
+  </div>
+  <div class="esas-yt-grid">
+    <a class="esas-yt-card esas-r" href="https://www.youtube.com/channel/UCFLqFZ6Uk-5X7bLzq5n5boQ" target="_blank" rel="noopener" style="background:linear-gradient(135deg,#0f1e30,#0a0a18)">
+      <div class="esas-yt-overlay"><div class="esas-yt-play"><i class="fas fa-play" style="font-size:14px;margin-left:2px"></i></div><div class="esas-yt-vtitle">Istanbul Property Tour 2024</div></div>
+    </a>
+    <a class="esas-yt-card esas-r" data-d="1" href="https://www.youtube.com/channel/UCFLqFZ6Uk-5X7bLzq5n5boQ" target="_blank" rel="noopener" style="background:linear-gradient(135deg,#0a1f1a,#060e0d)">
+      <div class="esas-yt-overlay"><div class="esas-yt-play"><i class="fas fa-play" style="font-size:14px;margin-left:2px"></i></div><div class="esas-yt-vtitle">Luxury Sea-View Apartments</div></div>
+    </a>
+    <a class="esas-yt-card esas-r" data-d="2" href="https://www.youtube.com/channel/UCFLqFZ6Uk-5X7bLzq5n5boQ" target="_blank" rel="noopener" style="background:linear-gradient(135deg,#18102a,#0d080f)">
+      <div class="esas-yt-overlay"><div class="esas-yt-play"><i class="fas fa-play" style="font-size:14px;margin-left:2px"></i></div><div class="esas-yt-vtitle">Turkish Citizenship Guide</div></div>
+    </a>
+    <a class="esas-yt-card esas-r" data-d="3" href="https://www.youtube.com/channel/UCFLqFZ6Uk-5X7bLzq5n5boQ" target="_blank" rel="noopener" style="background:linear-gradient(135deg,#261a08,#120c04)">
+      <div class="esas-yt-overlay"><div class="esas-yt-play"><i class="fas fa-play" style="font-size:14px;margin-left:2px"></i></div><div class="esas-yt-vtitle">EsasHomes — 2024 Highlights</div></div>
+    </a>
+  </div>
+  <div class="esas-center">
+    <a href="https://www.youtube.com/channel/UCFLqFZ6Uk-5X7bLzq5n5boQ" target="_blank" rel="noopener" class="esas-btn-outline esas-r" data-t="ytBtn">View All Videos on YouTube</a>
+  </div>
+</section>
+
+<!-- BOOKING / CONTACT -->
+<section id="booking" class="esas-section esas-dk">
+  <div class="esas-bk-grid">
+    <div class="esas-bk-info">
+      <div class="esas-eyebrow esas-r">Booking</div>
+      <h2 class="esas-r" data-d="1" data-t="bookTitle">Book a Private Viewing</h2>
+      <p class="esas-r" data-d="2" data-t="bookSub">Reach us directly or fill in the form — our team will contact you within 24 hours.</p>
+      <div class="esas-contact-item esas-r" data-d="3">
+        <div class="esas-contact-icon"><i class="fas fa-phone"></i></div>
+        <div>
+          <div class="esas-contact-lbl" data-t="phoneLbl">Phone</div>
+          <div class="esas-contact-val"><a href="tel:+905533333295" class="esas-phone-trigger">(+90) 553 333 32 95</a></div>
+        </div>
+      </div>
+      <div class="esas-contact-item esas-r" data-d="3">
+        <div class="esas-contact-icon"><i class="fas fa-envelope"></i></div>
+        <div>
+          <div class="esas-contact-lbl" data-t="emailLbl">Email</div>
+          <div class="esas-contact-val"><a href="mailto:info@esashomes.com">info@esashomes.com</a></div>
+        </div>
+      </div>
+      <div class="esas-contact-item esas-r" data-d="4">
+        <div class="esas-contact-icon"><i class="fas fa-map-marker-alt"></i></div>
+        <div>
+          <div class="esas-contact-lbl" data-t="addrLbl">Address</div>
+          <div class="esas-contact-val">Beylikdüzü OSB, Esenyurt<br>Istanbul, Türkiye</div>
+        </div>
+      </div>
+      <a href="https://wa.me/905533333295" target="_blank" rel="noopener" class="esas-wa-btn esas-r" data-d="5">
+        <i class="fab fa-whatsapp" style="font-size:16px"></i><span>Chat on WhatsApp</span>
+      </a>
+    </div>
+    <div class="esas-form-panel esas-r" data-d="1">
+      <h3 data-t="bookTitle">Book a Private Viewing</h3>
+      <form id="booking-form" novalidate>
+        <div class="esas-form-row">
+          <div class="esas-field">
+            <label for="f-name" data-t="nameFld">Full Name</label>
+            <input id="f-name" type="text" required placeholder="Your full name">
+          </div>
+          <div class="esas-field">
+            <label for="f-email" data-t="emailFld">Email Address</label>
+            <input id="f-email" type="email" required placeholder="your@email.com">
+          </div>
+        </div>
+        <div class="esas-field">
+          <label data-t="phoneFld">Phone Number</label>
+          <div class="esas-phone-row">
+            <select>
+              <option value="+90">🇹🇷 +90</option>
+              <option value="+966">🇸🇦 +966</option>
+              <option value="+971">🇦🇪 +971</option>
+              <option value="+965">🇰🇼 +965</option>
+              <option value="+974">🇶🇦 +974</option>
+              <option value="+7">🇷🇺 +7</option>
+              <option value="+86">🇨🇳 +86</option>
+              <option value="+98">🇮🇷 +98</option>
+              <option value="+1">🇺🇸 +1</option>
+              <option value="+44">🇬🇧 +44</option>
+            </select>
+            <input id="f-phone" type="tel" required placeholder="555 123 45 67">
+          </div>
+        </div>
+        <div class="esas-form-row">
+          <div class="esas-field">
+            <label for="f-lang" data-t="langFld">Preferred Language</label>
+            <select id="f-lang">
+              <option>English</option>
+              <option>العربية</option>
+              <option>Русский</option>
+              <option>فارسی</option>
+              <option>中文</option>
+            </select>
+          </div>
+          <div class="esas-field">
+            <label for="f-prop" data-t="propFld">Property Interest</label>
+            <select id="f-prop">
+              <option>Yaka Park Kartal</option>
+              <option>Referans Loca Kartal</option>
+              <option>Pega Kartal</option>
+              <option>Nouvel Maltepe</option>
+              <option>ESA 415 Kordon Istanbul</option>
+              <option>Cuento Elite</option>
+              <option>Other / Not decided</option>
+            </select>
+          </div>
+        </div>
+        <div class="esas-form-row">
+          <div class="esas-field">
+            <label for="f-date" data-t="dateFld">Preferred Date</label>
+            <input id="f-date" type="date">
+          </div>
+          <div class="esas-field">
+            <label for="f-msg" data-t="msgFld">Message</label>
+            <textarea id="f-msg" placeholder="Any questions or special requests..."></textarea>
+          </div>
+        </div>
+        <button type="submit" class="esas-submit" data-t="submitBtn">Book Private Viewing</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="esas-footer">
+  <div class="esas-footer-grid">
+    <div>
+      <div class="esas-footer-logo">
+        <img src="uploads/Gemini_Generated_Image_mnkvyamnkvyamnkv.png" alt="EsasHomes">
+        <div class="esas-footer-brand-name">ESAS HOMES</div>
+      </div>
+      <p class="esas-footer-tagline" data-t="footerTagline">The foundation of real estate in Türkiye — serving global investors in 5 languages.</p>
+      <address class="esas-footer-addr" style="font-style:normal">
+        Beylikdüzü OSB, Esenyurt<br>Istanbul, Türkiye<br>
+        <a href="tel:+905533333295" class="esas-phone-trigger" style="color:rgba(240,235,227,.4);text-decoration:none">(+90) 553 333 32 95</a>
+      </address>
+    </div>
+    <div>
+      <h4>Navigation</h4>
+      <ul class="esas-footer-links">
+        <li><a href="#about">About Us</a></li>
+        <li><a href="#partners">Our Partners</a></li>
+        <li><a href="#properties">Properties</a></li>
+        <li><a href="#why">Why EsasHomes</a></li>
+        <li><a href="#booking">Contact</a></li>
+      </ul>
+      <h4>From Our Blog</h4>
+      <div class="esas-footer-blog">
+        <a href="#">5 Steps to Turkish Nationality</a>
+        <a href="#">A Guide to Title Deed Taxes</a>
+        <a href="#">Turkish Passports — Investor Guide</a>
+      </div>
+    </div>
+    <div>
+      <h4>Follow Us</h4>
+      <div class="esas-social-row">
+        <a href="#" class="esas-social-btn" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" class="esas-social-btn" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+        <a href="https://www.youtube.com/channel/UCFLqFZ6Uk-5X7bLzq5n5boQ" target="_blank" rel="noopener" class="esas-social-btn" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+        <a href="#" class="esas-social-btn" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+      </div>
+      <h4 data-t="nlLabel">Newsletter</h4>
+      <div class="esas-newsletter-row">
+        <input type="email" placeholder="your@email.com">
+        <button data-t="subscribe">Subscribe</button>
+      </div>
+    </div>
+  </div>
+  <div style="max-width:1340px;margin:52px auto 0">
+    <div class="esas-footer-bottom">
+      <span class="esas-copyright" data-t="copyright">© 2025 EsasHomes. All rights reserved.</span>
+      <div class="esas-footer-bottom-links">
+        <a href="#" data-t="privacyLbl">Privacy Policy</a>
+        <a href="#" data-t="termsLbl">Terms of Use</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="sections.js" defer></script>
+</body>
+</html>
